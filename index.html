@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cognitive Fatigue in LLMs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f9f8f6; --surface: #ffffff;
+  --border: #e6e3de; --border-light: #eeebe6;
+  --text: #18170f; --text-muted: #696660; --text-faint: #a39f99;
+  --accent: #bf3b18; --accent-light: #fdf0ec;
+  --blue: #1f5fa6; --blue-light: #edf3fb;
+  --teal: #0f6651; --teal-light: #edf7f4;
+  --amber: #8a5208; --amber-light: #fdf6ec;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --max: 880px;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: rgba(249,248,246,0.93); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-light); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 50px; }
+.nav-brand { font-family: var(--serif); font-size: 14px; color: var(--text-muted); }
+.nav-links { display: flex; gap: 22px; list-style: none; }
+.nav-links a { font-size: 13px; color: var(--text-muted); text-decoration: none; transition: color .15s; }
+.nav-links a:hover { color: var(--text); }
+
+/* HERO */
+.hero { max-width: var(--max); margin: 0 auto; padding: 4.5rem 2rem 3rem; text-align: center; }
+.venue-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.badge { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; padding: 4px 12px; border-radius: 20px; border: 1px solid; }
+.badge-icml { background: var(--accent-light); color: var(--accent); border-color: #f0c0ae; }
+.badge-aaai { background: var(--blue-light); color: var(--blue); border-color: #bed2ee; }
+h1 { font-family: var(--serif); font-size: clamp(30px, 5.5vw, 46px); font-weight: 400; line-height: 1.18; letter-spacing: -.01em; max-width: 740px; margin: 0 auto 1.5rem; }
+.authors { font-size: 15px; color: var(--text-muted); margin-bottom: .35rem; }
+.authors a { color: var(--blue); text-decoration: none; }
+.authors a:hover { text-decoration: underline; }
+.affils { font-size: 13px; color: var(--text-faint); margin-bottom: 2rem; }
+sup { font-size: 10px; vertical-align: super; }
+.btn-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); text-decoration: none; transition: background .15s, border-color .15s, transform .1s; }
+.btn:hover { background: #f1eeea; border-color: #ccc9c3; transform: translateY(-1px); }
+.btn-primary { background: var(--text); color: #fff; border-color: var(--text); }
+.btn-primary:hover { background: #2e2d27; border-color: #2e2d27; }
+.btn svg { flex-shrink: 0; }
+
+/* TEASER */
+.teaser-wrap { max-width: var(--max); margin: 2.5rem auto 0; padding: 0 2rem 3rem; }
+.teaser-fig { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; }
+.fi-pipeline { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 0; align-items: center; }
+.pipeline-col { display: flex; flex-direction: column; gap: 8px; }
+.pipeline-arrow { font-size: 22px; color: var(--border); padding: 0 12px; text-align: center; flex-shrink: 0; }
+.signal-block { background: var(--bg); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; }
+.signal-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.dot-attn { background: var(--accent); }
+.dot-drift { background: var(--blue); }
+.dot-entr { background: var(--teal); }
+.sname { font-size: 12px; font-weight: 500; }
+.sdesc { font-size: 11px; color: var(--text-faint); line-height: 1.4; }
+.axiom-col { display: flex; flex-direction: column; gap: 6px; }
+.axiom-pill { background: var(--bg); border: 1px solid var(--border-light); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--text-muted); text-align: center; white-space: nowrap; }
+.fi-box { background: var(--bg); border: 1px solid var(--border-light); border-radius: 8px; padding: 1.25rem; text-align: center; }
+.fi-label-sm { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; color: var(--text-faint); margin-bottom: 4px; }
+.fi-number { font-family: var(--serif); font-size: 40px; line-height: 1; color: var(--accent); margin-bottom: 8px; }
+.fi-bar-wrap { height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.fi-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#4ade80,#facc15,#ef4444); animation: barfill 2s ease-out forwards; }
+@keyframes barfill { from{width:0} to{width:82%} }
+.fi-formula-sm { font-family: var(--mono); font-size: 10px; color: var(--text-faint); line-height: 1.6; }
+.teaser-caption { font-size: 12px; color: var(--text-faint); text-align: center; margin-top: 1.25rem; line-height: 1.6; }
+
+/* PART HEADERS */
+.part-header { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border-light); background: var(--surface); padding: .85rem 2rem; }
+.part-header-inner { max-width: var(--max); margin: 0 auto; display: flex; align-items: baseline; gap: 1rem; }
+.part-number { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--text-faint); flex-shrink: 0; }
+.part-title { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.part-badge { margin-left: auto; }
+
+/* SECTIONS */
+.section { max-width: var(--max); margin: 0 auto; padding: 2.75rem 2rem; }
+.section + .section { padding-top: 0; }
+.section-label { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 1.1rem; }
+.page-divider { max-width: var(--max); margin: 0 auto; border: none; border-top: 1px solid var(--border-light); }
+
+/* CONCEPT */
+.concept-intro { font-size: 16px; line-height: 1.85; color: var(--text-muted); margin-bottom: 1.5rem; }
+.concept-intro strong { color: var(--text); font-weight: 500; }
+
+.signal-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 2rem; }
+.sig-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; position: relative; overflow: hidden; }
+.sig-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 10px 10px 0 0; }
+.sig-card.attn::before { background: var(--accent); }
+.sig-card.drift::before { background: var(--blue); }
+.sig-card.entr::before  { background: var(--teal); }
+.sig-card-label { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--text-faint); margin-bottom: 6px; }
+.sig-card-name  { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.sig-card-body  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.sig-card-formula { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 10px; border-top: 1px solid var(--border-light); padding-top: 8px; }
+
+.axioms-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 2rem; }
+.axiom-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; display: flex; gap: 10px; align-items: flex-start; }
+.axiom-tag { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--text-faint); margin-top: 2px; flex-shrink: 0; min-width: 24px; }
+.atitle { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.adesc { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+
+.fi-block { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; }
+.fi-block .eq { font-family: var(--mono); font-size: 15px; color: var(--text); display: block; margin-bottom: 5px; }
+.fi-block .eq-detail { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+.mechanisms-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 1rem; }
+.mechanisms-table th { font-weight: 500; font-size: 11px; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-family: var(--mono); letter-spacing: .05em; }
+.mechanisms-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-light); vertical-align: top; color: var(--text-muted); line-height: 1.5; }
+.mechanisms-table tr:last-child td { border-bottom: none; }
+.mechanisms-table td:first-child { font-weight: 500; color: var(--text); white-space: nowrap; }
+
+/* FULL PAPER */
+.abstract-text { font-size: 15px; line-height: 1.85; color: var(--text-muted); }
+.abstract-text strong { color: var(--text); font-weight: 500; }
+
+.results-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 2.5rem; }
+.res-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1rem; text-align: center; }
+.res-num { font-family: var(--serif); font-size: 34px; line-height: 1; margin-bottom: 5px; }
+.res-num.r1 { color: var(--teal); }
+.res-num.r2 { color: var(--blue); }
+.res-num.r3 { color: var(--accent); }
+.res-num.r4 { color: var(--amber); }
+.res-label { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+
+.findings { display: flex; flex-direction: column; }
+.finding { display: grid; grid-template-columns: 72px 1fr; gap: .75rem; padding: 1.1rem 0; border-bottom: 1px solid var(--border-light); align-items: start; }
+.finding:last-child { border-bottom: none; }
+.ftag { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--text-faint); padding-top: 3px; }
+.fbody { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+.fbody strong { color: var(--text); font-weight: 500; }
+
+.scaling-note { background: var(--amber-light); border: 1px solid #e8d0a0; border-radius: 8px; padding: 1rem 1.25rem; font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-top: 1.5rem; }
+.scaling-note strong { color: var(--text); font-weight: 500; }
+
+/* DEMO */
+.video-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); background: #0c0c0c; aspect-ratio: 16/9; margin-bottom: 2rem; }
+.video-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+.interventions-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 2rem; }
+.int-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; }
+.int-tag { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); margin-bottom: 6px; }
+.int-name { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+.int-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+.demo-results { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+.demo-results table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.demo-results th { background: var(--bg); border-bottom: 1px solid var(--border); padding: 9px 14px; text-align: left; font-weight: 500; font-size: 11px; font-family: var(--mono); letter-spacing: .05em; color: var(--text-muted); }
+.demo-results td { padding: 10px 14px; border-bottom: 1px solid var(--border-light); color: var(--text-muted); font-size: 13px; }
+.demo-results tr:last-child td { border-bottom: none; }
+.demo-results td:first-child { font-weight: 500; color: var(--text); }
+.td-better { color: var(--teal); font-weight: 500; }
+
+/* PAPERS + BIBTEX */
+.paper-cards { display: flex; flex-direction: column; gap: 14px; }
+.paper-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.4rem; display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; transition: border-color .15s; }
+.paper-card:hover { border-color: #c0bdb8; }
+.paper-card-num { font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--border); line-height: 1; min-width: 26px; padding-top: 2px; }
+.paper-card-venue { margin-bottom: 7px; }
+.paper-card-title { font-size: 14px; font-weight: 500; line-height: 1.45; margin-bottom: 5px; }
+.paper-card-authors { font-size: 12px; color: var(--text-faint); margin-bottom: 6px; }
+.paper-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+.paper-links { display: flex; gap: 14px; }
+.plink { font-size: 12px; font-weight: 500; color: var(--blue); text-decoration: none; }
+.plink:hover { text-decoration: underline; }
+
+.bib-blocks { display: flex; flex-direction: column; gap: 10px; }
+.bib-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.bib-header { padding: 7px 14px; background: var(--bg); border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+.bib-copy { font-size: 11px; color: var(--blue); cursor: pointer; background: none; border: none; font-family: var(--mono); }
+.bib-copy:hover { text-decoration: underline; }
+.bib-body { padding: .9rem 1.1rem; font-family: var(--mono); font-size: 11.5px; color: var(--text-muted); line-height: 1.8; overflow-x: auto; white-space: pre; }
+
+/* FOOTER */
+footer { border-top: 1px solid var(--border-light); padding: 2rem; text-align: center; font-size: 12px; color: var(--text-faint); line-height: 1.9; }
+footer a { color: var(--blue); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* RESPONSIVE */
+@media (max-width: 680px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  .hero, .teaser-wrap, .section { padding-left: 1rem; padding-right: 1rem; }
+  .fi-pipeline { grid-template-columns: 1fr; }
+  .pipeline-arrow { transform: rotate(90deg); padding: 4px 0; }
+  .signal-cards, .axioms-grid, .interventions-grid { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: repeat(2,1fr); }
+  .paper-card { grid-template-columns: 1fr; }
+  .paper-card-num { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Cognitive Fatigue in LLMs</span>
+  <ul class="nav-links">
+    <li><a href="#concept">Concept</a></li>
+    <li><a href="#fullpaper">Full Paper</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#papers">Papers</a></li>
+    <li><a href="#bibtex">BibTeX</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="venue-row">
+    <span class="badge badge-icml">ICML 2025 · Full Paper</span>
+    <span class="badge badge-aaai">AAAI 2026 · Demo Paper</span>
+  </div>
+  <h1>Cognitive Fatigue in Autoregressive Transformers</h1>
+  <p class="authors">
+    <a href="#">Riju Marwah</a><sup>1,2</sup> &nbsp;&middot;&nbsp;
+    <a href="#">Vishal Pallagani</a><sup>2</sup> &nbsp;&middot;&nbsp;
+    <a href="#">Ritvik Garimella</a><sup>2</sup> &nbsp;&middot;&nbsp;
+    <a href="#">Amit Sheth</a><sup>2</sup>
+  </p>
+  <p class="affils">
+    <sup>1</sup>Guru Gobind Singh Indraprastha University, India &nbsp;&nbsp;
+    <sup>2</sup>AI Institute, University of South Carolina, USA
+  </p>
+  <div class="btn-row">
+    <a href="#" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Paper (ICML)
+    </a>
+    <a href="#" class="btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Demo Paper (AAAI)
+    </a>
+    <a href="https://github.com/" class="btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Code
+    </a>
+    <a href="https://www.youtube.com/watch?v=ktqkZyYWDDE" target="_blank" class="btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Demo Video
+    </a>
+    <a href="#" class="btn">arXiv</a>
+  </div>
+</div>
+
+<!-- TEASER -->
+<div class="teaser-wrap">
+  <div class="teaser-fig">
+    <div class="fi-pipeline">
+      <div class="pipeline-col">
+        <div class="signal-block">
+          <div class="signal-dot dot-attn"></div>
+          <div><div class="sname">Attention decay (A<sub>t</sub>)</div><div class="sdesc">Mean last-layer attention to prompt slice; declining trend = instruction loss</div></div>
+        </div>
+        <div class="signal-block">
+          <div class="signal-dot dot-drift"></div>
+          <div><div class="sname">Embedding drift (D<sub>t</sub>)</div><div class="sdesc">‖h<sub>t</sub> − h<sub>0</sub>‖₂ from prompt anchor; growth = representation wandering</div></div>
+        </div>
+        <div class="signal-block">
+          <div class="signal-dot dot-entr"></div>
+          <div><div class="sname">Entropy deviation (E<sub>t</sub>)</div><div class="sdesc">Departure from healthy band; low = repetition, high = erratic indecision</div></div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="axiom-col">
+        <div class="axiom-pill">Monotonicity</div>
+        <div class="axiom-pill">Scale invariance</div>
+        <div class="axiom-pill">Boundedness</div>
+        <div class="axiom-pill">Temporal stability</div>
+        <div class="axiom-pill">Compositionality</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="fi-box">
+        <div class="fi-label-sm">FATIGUE INDEX</div>
+        <div class="fi-number">0.82</div>
+        <div class="fi-bar-wrap"><div class="fi-bar-fill"></div></div>
+        <div class="fi-formula-sm">FI = w<sub>A</sub>φ<sub>A</sub> + w<sub>E</sub>φ<sub>E</sub> + w<sub>D</sub>φ<sub>D</sub><br>FI ∈ [0,1] · computed at inference time</div>
+      </div>
+    </div>
+    <p class="teaser-caption">Three lightweight inference-time signals — normalized under explicit axioms and aggregated into the Fatigue Index — enable real-time monitoring of long-horizon generation reliability without retraining.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- PART I: CONCEPT                    -->
+<!-- ══════════════════════════════════ -->
+<div class="part-header" id="concept">
+  <div class="part-header-inner">
+    <span class="part-number">Part I</span>
+    <span class="part-title">The Concept: Cognitive Fatigue in LLMs</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">What is cognitive fatigue?</div>
+  <p class="concept-intro">Autoregressive language models perform reliably on short prompts but <strong>systematically degrade during long-horizon generation</strong>. This degradation — growing repetition, loss of instruction adherence, unstable output entropy — is not a rare anomaly. It is a natural consequence of how transformer decoders operate over extended sequences.</p>
+  <p class="concept-intro">We formalize this as <strong>cognitive fatigue</strong>: a progressive, within-run deterioration in instruction adherence, representation stability, and predictive calibration. Unlike isolated errors or random noise, fatigue is systematic and cumulative. It emerges from interacting architectural and numerical pressures — and crucially, it is <strong>measurable at inference time</strong>, token by token, without modifying model weights or retraining.</p>
+  <p class="concept-intro">The key insight is that fatigue is not just an output phenomenon — it has internal signatures detectable in attention patterns, hidden states, and output distributions <em>before</em> text quality visibly degrades. This makes it possible to monitor reliability online and intervene in time.</p>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">The three signals</div>
+  <div class="signal-cards">
+    <div class="sig-card attn">
+      <div class="sig-card-label">Signal A</div>
+      <div class="sig-card-name">Prompt attention decay</div>
+      <div class="sig-card-body">As decoding progresses, the model increasingly conditions on its own recent outputs rather than the original instruction. Transformer decoders expose this through attention weights: the mean last-layer attention mass allocated to the initial prompt slice declines even when the instruction remains relevant. A declining A<sub>t</sub> signals growing instruction neglect.</div>
+      <div class="sig-card-formula">A<sub>t</sub> = (1/H) Σ<sub>h</sub> Σ<sub>j≤Lp</sub> Attn<sub>h</sub>(x<sub>t</sub>, x<sub>j</sub>)<br>Weight: w<sub>A</sub> = 0.40 (highest priority)</div>
+    </div>
+    <div class="sig-card drift">
+      <div class="sig-card-label">Signal D</div>
+      <div class="sig-card-name">Embedding drift</div>
+      <div class="sig-card-body">Long-horizon decoding repeatedly updates a shared residual stream, allowing small perturbations to accumulate. Hidden states gradually drift away from the representational subspace induced by the prompt — a latent degradation process that <em>precedes</em> surface-level incoherence. This internal drift is not directly observable from output text alone.</div>
+      <div class="sig-card-formula">D<sub>t</sub> = ‖h<sub>t</sub> − h<sub>0</sub>‖₂<br>Weight: w<sub>D</sub> = 0.25 (noisiest signal)</div>
+    </div>
+    <div class="sig-card entr">
+      <div class="sig-card-label">Signal E</div>
+      <div class="sig-card-name">Entropy deviation</div>
+      <div class="sig-card-body">During extended generation, models become overconfident (low entropy → repetition, degeneracy) or erratically uncertain (high entropy → unrelated to task difficulty). Shannon entropy of the next-token softmax provides a direct view of calibration state. Deviation from a healthy band in either direction signals fatigue.</div>
+      <div class="sig-card-formula">E<sub>t</sub> = −Σ p log p &nbsp;|&nbsp; healthy: [H<sub>ℓ</sub>, H<sub>u</sub>]<br>Weight: w<sub>E</sub> = 0.35</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">The Fatigue Index</div>
+  <div class="fi-block">
+    <span class="eq">FI<sub>t</sub> = w<sub>A</sub> φ<sub>A</sub>(A<sub>t</sub>) + w<sub>E</sub> φ<sub>E</sub>(E<sub>t</sub>) + w<sub>D</sub> φ<sub>D</sub>(D<sub>t</sub>)</span>
+    <div class="eq-detail">Each φ is a fixed monotone normalization map to [0,1]. Weights w<sub>A</sub> = 0.40, w<sub>E</sub> = 0.35, w<sub>D</sub> = 0.25 encode domain priors — prompt attention most directly governs instruction following; entropy governs degeneracy and repetition; drift signals longer-horizon instability but is noisier. Weights are frozen across all experiments. Higher FI = greater fatigue. FI ∈ [0,1].</div>
+  </div>
+
+  <div class="section-label" style="margin-top:1.75rem">Five axioms any valid fatigue measure must satisfy</div>
+  <div class="axioms-grid">
+    <div class="axiom-card">
+      <span class="axiom-tag">A1</span>
+      <div>
+        <div class="atitle">Monotonicity</div>
+        <div class="adesc">Reduced prompt attention, increased entropy deviation, or increased embedding drift must each monotonically increase FI. Worsening signals must produce worsening scores — never the reverse.</div>
+      </div>
+    </div>
+    <div class="axiom-card">
+      <span class="axiom-tag">A2</span>
+      <div>
+        <div class="atitle">Scale invariance</div>
+        <div class="adesc">Monotone reparameterizations of raw signals must preserve the fatigue ordering, ensuring comparability across decoding regimes and numerical scales.</div>
+      </div>
+    </div>
+    <div class="axiom-card">
+      <span class="axiom-tag">A3</span>
+      <div>
+        <div class="atitle">Boundedness</div>
+        <div class="adesc">FI lies on a fixed, interpretable scale: FI ∈ [0, 1]. This supports stable thresholds and consistent online monitoring across runs and models without renormalization.</div>
+      </div>
+    </div>
+    <div class="axiom-card">
+      <span class="axiom-tag">A4</span>
+      <div>
+        <div class="atitle">Temporal stability</div>
+        <div class="adesc">Small, transient perturbations in signals should not induce large, instantaneous FI changes. Prevents spurious oscillations under inference-time noise. Enforced via hysteresis with distinct activation and deactivation thresholds.</div>
+      </div>
+    </div>
+    <div class="axiom-card" style="grid-column: 1 / -1">
+      <span class="axiom-tag">A5</span>
+      <div>
+        <div class="atitle">Compositionality</div>
+        <div class="adesc">FI must decompose into interpretable per-signal contributions: FI = Σ w<sub>k</sub> g<sub>k</sub>(s<sub>k,t</sub>). This enables attribution — identifying which failure mode is driving a high score — and supports simple stabilizing mechanisms. Together, A1–A3 and A5 characterize the family of valid additive fatigue measures (Theorem E.1).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">Mechanisms that drive fatigue</div>
+  <table class="mechanisms-table">
+    <thead>
+      <tr><th>Mechanism</th><th>Description</th><th>Observed effect</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Attention dilution</td>
+        <td>As sequence length grows, softmax attention mass over prompt tokens is diluted; RoPE and ALiBi positional biases further favor recent tokens.</td>
+        <td>Declining A<sub>t</sub>; worse performance when evidence is distant from decode head.</td>
+      </tr>
+      <tr>
+        <td>Residual drift</td>
+        <td>Errors compound in the shared residual stream; deviations propagate rather than cancel due to autoregressive updates and LayerNorm dynamics.</td>
+        <td>Monotonic increase in D<sub>t</sub>; higher drift aligns with repetition and lower F1.</td>
+      </tr>
+      <tr>
+        <td>Entropy collapse</td>
+        <td>Autoregressive training favors sharp predictions; greedy or low-temperature decoding amplifies overconfidence, especially under quantization.</td>
+        <td>Entropy leaves healthy band; repetitive and degenerate outputs late in generation.</td>
+      </tr>
+      <tr>
+        <td>Context length stress</td>
+        <td>Long contexts strain numerical precision in KV caches; RoPE phase saturation without scaling degrades long-range recall.</td>
+        <td>Earlier FI onset; biased attention scores; unstable output distributions.</td>
+      </tr>
+      <tr>
+        <td>Reduced precision</td>
+        <td>4-bit quantization destabilizes predictive calibration without disrupting prompt focus or representation stability.</td>
+        <td>Deeper, more variable entropy collapse under NF4 vs. FP16; A<sub>t</sub> and D<sub>t</sub> remain similar.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- PART II: FULL PAPER                -->
+<!-- ══════════════════════════════════ -->
+<div class="part-header" id="fullpaper">
+  <div class="part-header-inner">
+    <span class="part-number">Part II</span>
+    <span class="part-title">Formalization and Measurement</span>
+    <span class="part-badge"><span class="badge badge-icml">ICML 2025</span></span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Abstract</div>
+  <p class="abstract-text">Autoregressive language models frequently degrade during long-horizon generation, producing repetitive text, losing instruction adherence, and exhibiting unstable entropy. Despite the prevalence of these failures, practitioners lack online diagnostics to detect them in real time as they occur. We formalize this degradation as <strong>cognitive fatigue</strong>, a measurable generation-time state characterized by decay in attention to the original prompt, representational drift, and entropy miscalibration. We introduce the <strong>Fatigue Index (FI)</strong>, a lightweight, model-agnostic diagnostic that aggregates these three signals under explicit axioms — enabling reliable runtime monitoring. Across nine models (1B–13B parameters), FI trajectories exhibit structured temporal dynamics, predict task degradation (<strong>AUROC = 0.95</strong>) and repetition (<strong>ρ = 0.94</strong>), and reveal non-monotonic scaling behavior. Stress analyses further show that FI onset accelerates under longer contexts, middle-positioned evidence, and reduced numerical precision. These results establish cognitive fatigue as a coherent and measurable phenomenon, and position FI as a principled tool for runtime reliability monitoring in production LLM systems.</p>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">Key results</div>
+  <div class="results-grid">
+    <div class="res-card"><div class="res-num r1">0.95</div><div class="res-label">AUROC predicting task degradation</div></div>
+    <div class="res-card"><div class="res-num r2">0.94</div><div class="res-label">Spearman ρ with repetition ratio</div></div>
+    <div class="res-card"><div class="res-num r3">&gt;91%</div><div class="res-label">Jitter reduction via hysteresis alerting</div></div>
+    <div class="res-card"><div class="res-num r4">9</div><div class="res-label">Models evaluated · 1B–13B params</div></div>
+  </div>
+
+  <div class="findings">
+    <div class="finding">
+      <span class="ftag">Finding 1</span>
+      <div class="fbody"><strong>Fatigue is domain-agnostic.</strong> FI accumulates consistently across HotpotQA (reasoning), TriviaQA (knowledge), and SQuAD (comprehension) — 27,405 generated sequences total — with mean values clustering tightly around 0.82 across all three. This rules out benchmark-specific artifacts and supports fatigue as a degradation process intrinsic to long-horizon decoding itself.</div>
+    </div>
+    <div class="finding">
+      <span class="ftag">Finding 2</span>
+      <div class="fbody"><strong>Aggregation is necessary.</strong> The full FI achieves AUROC = 0.977 on HotpotQA, significantly outperforming every individual signal in isolation: Entropy only (0.954), Drift only (0.930), Attention only (0.308). Attention alone performs particularly poorly — prompt focus is insufficient as a standalone indicator. The multi-component construction is empirically justified.</div>
+    </div>
+    <div class="finding">
+      <span class="ftag">Finding 3</span>
+      <div class="fbody"><strong>Degradation is cumulative, not Markovian.</strong> Spearman correlation between FI and repetition is ρ &gt; 0.84 over full sequences but only ρ ≈ 0.40 over the first 20 tokens. Early-warning heuristics based on initial tokens are insufficient — an effective monitoring policy must track the full trajectory.</div>
+    </div>
+    <div class="finding">
+      <span class="ftag">Finding 4</span>
+      <div class="fbody"><strong>Context length accelerates FI onset.</strong> Longer contexts induce earlier and more sustained collapse of prompt-directed attention. Embedding drift increases across all conditions but becomes more variable with length, while entropy exhibits larger fluctuations — consistent with attention dilution and accumulation of residual deviations under extended sequences.</div>
+    </div>
+    <div class="finding">
+      <span class="ftag">Finding 5</span>
+      <div class="fbody"><strong>Middle-positioned evidence is systematically underused.</strong> Identical evidence placed at the start of a context receives substantially higher attention than the same evidence placed in the middle or end — a positional bias that accelerates prompt-forgetting and explains the "lost-in-the-middle" performance failures documented in prior work.</div>
+    </div>
+    <div class="finding">
+      <span class="ftag">Finding 6</span>
+      <div class="fbody"><strong>Quantization primarily destabilizes entropy.</strong> Comparing FP16 and 4-bit NF4 decoding under matched prompts and seeds: attention and drift trajectories remain similar, but entropy exhibits deeper and more variable collapse under quantization. Reduced precision disrupts predictive calibration far more than prompt focus or representation stability.</div>
+    </div>
+  </div>
+
+  <div class="scaling-note">
+    <strong>Non-monotonic scaling with instruction tuning.</strong> Instruction-tuned models below 3B parameters exhibit faster entropy collapse than base models under matched decoding — this trend reverses at 7B, where instruction tuning improves entropy calibration. At 13B, aggressive alignment produces a distinct failure mode: Llama-2-13B-Chat collapses into low-entropy refusal templates despite grammatical output ("safety fatigue"). Drift slopes remain approximately constant across all model sizes — larger models do not drift less, they drift more coherently.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!-- PART III: DEMO PAPER               -->
+<!-- ══════════════════════════════════ -->
+<div class="part-header" id="demo">
+  <div class="part-header-inner">
+    <span class="part-number">Part III</span>
+    <span class="part-title">Chatsparent — Interactive Detection &amp; Mitigation</span>
+    <span class="part-badge"><span class="badge badge-aaai">AAAI 2026 · Demo</span></span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Demo video</div>
+  <div class="video-wrap">
+    <iframe src="https://www.youtube.com/embed/ktqkZyYWDDE" title="Chatsparent demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+
+  <div class="section-label">Overview</div>
+  <p class="abstract-text" style="margin-bottom:1.5rem">Today's chatbot interfaces offer little to no friction: seamless conversations conceal when the model is drifting, hallucinating, or failing. This lack of transparency fosters blind trust, even as models produce unstable or repetitive outputs. <strong>Chatsparent</strong> makes cognitive fatigue visible, measurable, and actionable. The system instruments all three token-level fatigue signals in real time, fuses them into the Fatigue Index, and streams FI live alongside model outputs — giving users a continuous view of generation reliability. When thresholds are crossed, the interface enables <strong>retrain-free interventions</strong> that restore generation stability without modifying model weights. By turning passive chatbot interaction into an interactive diagnostic experience, Chatsparent reframes auto-regressive generation as an active control problem.</p>
+
+  <div class="section-label">Retrain-free interventions</div>
+  <div class="interventions-grid">
+    <div class="int-card">
+      <div class="int-tag">SCA · Soft context anchor</div>
+      <div class="int-name">Attention-triggered prompt reinsertion</div>
+      <div class="int-body">When A<sub>t</sub> falls below a threshold, the original prompt is re-prepended and only a short recent tail of tokens is retained within the context limit. This "break-glass" action refocuses the model without editing the key–value cache. Triggered adaptively when attention crosses threshold τ<sub>A</sub> = 0.010.</div>
+    </div>
+    <div class="int-card">
+      <div class="int-tag">PAR · Periodic attention reset</div>
+      <div class="int-name">Scheduled context rebuild</div>
+      <div class="int-body">At a fixed cadence k, the context is rebuilt as [prompt + recent tail]. PAR produces bumps in attention around reset boundaries, acting as a preventive nudge against gradual decay before thresholds are breached. Reset every 50 tokens with tail_keep = 128 in reported experiments.</div>
+    </div>
+    <div class="int-card">
+      <div class="int-tag">ERD · Entropy-regularized decoding</div>
+      <div class="int-name">Dynamic temperature adjustment</div>
+      <div class="int-body">At each step, temperature T ∈ [T<sub>min</sub>, T<sub>max</sub>] is adjusted to track a target entropy H*: if entropy is too low, increase T; if too high, decrease it. ERD curbs entropy collapse and indirectly flattens attention decay while leaving representation dynamics largely unchanged.</div>
+    </div>
+    <div class="int-card">
+      <div class="int-tag">PAUSE · Self-reflection</div>
+      <div class="int-name">Chain-of-thought checkpoints</div>
+      <div class="int-body">On a fixed cadence or when entropy or drift breach thresholds, the model briefly pauses generation to perform a targeted self-check. Grounding the model's next generation in a re-evaluation of its task context counteracts both attention decay and drift accumulation.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="section-label">Results — Falcon-7B-Instruct · 4-bit NF4 · HotpotQA</div>
+  <div class="demo-results">
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Mean Fatigue Index ↓</th><th>Change vs. baseline</th><th>Latency (s)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Baseline</td><td>0.36</td><td>—</td><td>213.5</td></tr>
+        <tr><td>ERD</td><td class="td-better">0.31</td><td class="td-better">−0.05</td><td>212.5</td></tr>
+        <tr><td>PAUSE</td><td class="td-better">0.31</td><td class="td-better">−0.05</td><td>228.0</td></tr>
+        <tr><td>SCA</td><td class="td-better">0.32</td><td class="td-better">−0.04</td><td>225.1</td></tr>
+        <tr><td>PAR</td><td class="td-better">0.34</td><td class="td-better">−0.02</td><td>222.4</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px; color:var(--text-faint); line-height:1.6">All interventions reduce mean FI with modest latency overhead. ERD achieves the best FI reduction with negligible added latency. Decoding defaults: top-p = 0.95, T = 1.0, max new tokens = 120.</p>
+</div>
+
+<!-- PAPERS -->
+<hr class="page-divider" style="margin-top:1rem" />
+<div class="section" id="papers">
+  <div class="section-label">Papers</div>
+  <div class="paper-cards">
+    <div class="paper-card">
+      <div class="paper-card-num">1</div>
+      <div>
+        <div class="paper-card-venue"><span class="badge badge-icml">ICML 2025</span></div>
+        <div class="paper-card-title">Cognitive Fatigue in Autoregressive Transformers: Formalization and Measurement</div>
+        <div class="paper-card-authors">Riju Marwah · Vishal Pallagani · Ritvik Garimella · Amit Sheth</div>
+        <div class="paper-card-desc">Formalizes cognitive fatigue as a runtime state variable grounded in three token-level signals. Introduces the Fatigue Index with five explicit axioms and validates it across nine models (1B–13B) on HotpotQA, TriviaQA, and SQuAD under long-context, positional, and precision stress conditions.</div>
+        <div class="paper-links">
+          <a href="#" class="plink">PDF ↗</a>
+          <a href="#" class="plink">arXiv ↗</a>
+          <a href="#bibtex" class="plink">BibTeX</a>
+        </div>
+      </div>
+    </div>
+    <div class="paper-card">
+      <div class="paper-card-num">2</div>
+      <div>
+        <div class="paper-card-venue"><span class="badge badge-aaai">AAAI 2026 · Demo</span></div>
+        <div class="paper-card-title">Chatsparent: An Interactive System for Detecting and Mitigating Cognitive Fatigue in LLMs</div>
+        <div class="paper-card-authors">Riju Marwah · Vishal Pallagani · Ritvik Garimella · Amit Sheth</div>
+        <div class="paper-card-desc">An interactive system that streams fatigue signals live alongside model outputs and enables four retrain-free interventions (SCA, PAR, ERD, PAUSE). Turns passive chatbot interaction into a diagnostic experience that exposes model dynamics and improves long-horizon reliability without retraining.</div>
+        <div class="paper-links">
+          <a href="#" class="plink">PDF ↗</a>
+          <a href="https://www.youtube.com/watch?v=ktqkZyYWDDE" target="_blank" class="plink">Demo video ↗</a>
+          <a href="#bibtex" class="plink">BibTeX</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BIBTEX -->
+<hr class="page-divider" />
+<div class="section" id="bibtex">
+  <div class="section-label">Citation</div>
+  <div class="bib-blocks">
+    <div class="bib-block">
+      <div class="bib-header">
+        <span>ICML 2025 — Full paper</span>
+        <button class="bib-copy" onclick="copyBib('bib1')">copy</button>
+      </div>
+      <div class="bib-body" id="bib1">@inproceedings{marwah2025cognitivefatigue,
+  title     = {Cognitive Fatigue in Autoregressive Transformers:
+               Formalization and Measurement},
+  author    = {Marwah, Riju and Pallagani, Vishal and
+               Garimella, Ritvik and Sheth, Amit},
+  booktitle = {Proceedings of the 42nd International Conference
+               on Machine Learning (ICML)},
+  year      = {2025}
+}</div>
+    </div>
+    <div class="bib-block">
+      <div class="bib-header">
+        <span>AAAI 2026 — Demo paper</span>
+        <button class="bib-copy" onclick="copyBib('bib2')">copy</button>
+      </div>
+      <div class="bib-body" id="bib2">@inproceedings{marwah2026chatsparent,
+  title     = {Chatsparent: An Interactive System for Detecting
+               and Mitigating Cognitive Fatigue in {LLMs}},
+  author    = {Marwah, Riju and Pallagani, Vishal and
+               Garimella, Ritvik and Sheth, Amit},
+  booktitle = {Proceedings of the AAAI Conference on
+               Artificial Intelligence},
+  year      = {2026}
+}</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>
+    Cognitive Fatigue in LLMs &nbsp;·&nbsp;
+    <a href="https://aiisc.ai" target="_blank">AI Institute, University of South Carolina</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="https://www.ggsipu.ac.in" target="_blank">Guru Gobind Singh Indraprastha University</a>
+  </p>
+  <p style="margin-top:5px">Questions? <a href="mailto:rmarwah@email.sc.edu">rmarwah@email.sc.edu</a></p>
+</footer>
+
+<script>
+function copyBib(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'copied!';
+    setTimeout(() => { btn.textContent = 'copy'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
