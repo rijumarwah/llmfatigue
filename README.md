@@ -1,4 +1,4 @@
-# Cognitive Fatigue in LLMs — Project Page
+# Cognitive Fatigue in LLMs: Project Page
 
 > Central project page for the Cognitive Fatigue research program.
 
@@ -8,15 +8,15 @@
 
 ## About
 
-Autoregressive language models degrade during long-horizon generation — producing repetitive text, losing instruction adherence, and exhibiting unstable entropy. This isn't a rare edge case; it's a structural property of how transformer decoders operate over extended sequences.
+Autoregressive language models degrade during long-horizon generation, producing repetitive text, losing instruction adherence, and exhibiting unstable entropy. This isn't a rare edge case; it's a structural property of how transformer decoders operate over extended sequences.
 
-We formalize this as **cognitive fatigue**: a measurable, within-run deterioration in instruction adherence, representation stability, and predictive calibration. We operationalize it through three lightweight inference-time signals — prompt attention decay, embedding drift, and entropy deviation — and aggregate them into the **Fatigue Index (FI)**, a normalized, model-agnostic diagnostic computable token-by-token at inference time without retraining.
+We formalize this as **cognitive fatigue**: a measurable, within-run deterioration in instruction adherence, representation stability, and predictive calibration. We operationalize it through three lightweight inference-time signals: prompt attention decay, embedding drift, and entropy deviation, and aggregate them into the **Fatigue Index (FI)**, a normalized, model-agnostic diagnostic computable token-by-token at inference time without retraining.
 
 The key insight: fatigue has internal signatures detectable in attention patterns, hidden states, and output distributions *before* text quality visibly degrades. This makes it possible to monitor reliability online and intervene in time.
 
 This research program spans:
 - A **full paper** (ICML 2026) formalizing the theory, axioms, and empirical validation across nine models
-- An **interactive demo** (AAAI 2026) — Chatsparent — that surfaces fatigue in real time and enables retrain-free interventions
+- An **interactive demo** (AAAI 2026) Chatsparent, that surfaces fatigue in real time and enables retrain-free interventions
 
 ---
 
@@ -67,7 +67,7 @@ cd llmfatigue
 open index.html        # or just drag into a browser
 ```
 
-Push changes to `main` — GitHub Pages redeploys automatically within ~60 seconds.
+Push changes to `main`. GitHub Pages redeploys automatically within ~60 seconds.
 
 ---
 
@@ -106,5 +106,4 @@ Implementation of the Fatigue Index and experiments will be released in a separa
 
 ## Contact
 
-Riju Marwah — [marwah.riju@gmail.com](mailto:marwah.riju@gmail.com)  
-Artificial Intelligence Institute of South Carolina
+Riju Marwah [marwah.riju@gmail.com](mailto:marwah.riju@gmail.com)  
