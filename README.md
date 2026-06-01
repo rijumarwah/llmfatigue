@@ -42,7 +42,7 @@ aaai_paper.pdf) · [arXiv](https://arxiv.org/pdf/2601.11526) · [Demo video](htt
 | [Vishal Pallagani](https://vishalpallagani.github.io) | AIISC |
 | [Atishay Jain](https://www.linkedin.com/in/atishay-jain-b90268296/) | AIISC · IIT Kanpur |
 | [Michael Stewart](https://www.linkedin.com/in/mcs46/) | AIISC |
-| [Amit Sheth](https://amit.aiisc.ai) | AIISC |
+| [Amit Sheth](https://amit.aiisc.ai) | AIISC · Indian AI Research Organization|
 
 ---
 
