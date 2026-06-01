@@ -24,11 +24,12 @@ This research program spans:
 
 **[1] Cognitive Fatigue in Autoregressive Transformers: Formalization and Measurement**  
 Riju Marwah, Ritvik Garimella, Vishal Pallagani, Atishay Jain, Michael Stewart, Amit Sheth  
-*ICML 2026* · [PDF](#) · [arXiv](#)
+*ICML 2026* · [PDF](icml_camready_paper.pdf) · [arXiv](https://arxiv.org/abs/2605.30981)
 
 **[2] Chatsparent: An Interactive System for Detecting and Mitigating Cognitive Fatigue in LLMs**  
 Riju Marwah, Vishal Pallagani, Ritvik Garimella, Amit Sheth  
-*AAAI 2026 Demo* · [PDF](https://arxiv.org/pdf/2601.11526) · [Demo video](https://www.youtube.com/watch?v=ktqkZyYWDDE)
+*AAAI 2026 Demo* · [PDF](
+aaai_paper.pdf) · [arXiv](https://arxiv.org/pdf/2601.11526) · [Demo video](https://www.youtube.com/watch?v=ktqkZyYWDDE)
 
 ---
 
