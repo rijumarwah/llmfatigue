@@ -38,6 +38,7 @@ nav { position: sticky; top: 0; z-index: 100; background: rgba(249,248,246,0.93)
 .badge { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; padding: 4px 12px; border-radius: 20px; border: 1px solid; }
 .badge-icml { background: var(--accent-light); color: var(--accent); border-color: #f0c0ae; }
 .badge-aaai { background: var(--blue-light); color: var(--blue); border-color: #bed2ee; }
+.badge-fs { background: var(--teal-light); color: var(--teal); border-color: #a9d6c9; }
 h1 { font-family: var(--serif); font-size: clamp(30px, 5.5vw, 46px); font-weight: 400; line-height: 1.18; letter-spacing: -.01em; max-width: 740px; margin: 0 auto 1.5rem; }
 .authors { font-size: 15px; color: var(--text-muted); margin-bottom: .35rem; }
 .authors a { color: var(--blue); text-decoration: none; }
@@ -215,28 +216,36 @@ footer a:hover { text-decoration: underline; }
 <!-- HERO -->
 <div class="hero">
   <div class="venue-row">
-    <span class="badge badge-icml">ICML 2026 · Full Paper</span>
+    <span class="badge badge-icml">ICML 2026 · Formalization Paper</span>
     <span class="badge badge-aaai">AAAI 2026 · Demo Paper</span>
+    <span class="badge badge-fs">AAAI FS 2026 · Post-Training Paper</span>
   </div>
   <h1>Cognitive Fatigue in Autoregressive Transformers</h1>
   <p class="authors">
     <a href="http://rijumarwah.github.io">Riju Marwah</a><sup>1,2</sup> &nbsp;&middot;&nbsp;
     <a href="https://ritvikg.com">Ritvik Garimella</a><sup>2</sup> &nbsp;&middot;&nbsp;
     <a href="https://vishalpallagani.github.io">Vishal Pallagani</a><sup>2</sup> &nbsp;&middot;&nbsp;
-    <a href="https://www.linkedin.com/in/atishay-jain-b90268296/">Atishay Jain</a><sup>2,3</sup> &nbsp;&middot;&nbsp;
+    <a href="https://www.linkedin.com/in/atishay-jain-b90268296/">Atishay Jain</a><sup>2,4</sup> &nbsp;&middot;&nbsp;
+    <a href="http://khushambansal.me/">Khusham Bansal</a><sup>2,5</sup> &nbsp;&middot;&nbsp;
     <a href="https://www.linkedin.com/in/mcs46/">Michael Stewart</a><sup>2</sup> &nbsp;&middot;&nbsp;
-    <a href="https://amit.aiisc.ai">Amit Sheth</a><sup>2,4</sup>
+    <a href="https://amit.aiisc.ai">Amit Sheth</a><sup>2,6</sup>
   </p>
   <p class="affils">
-    <sup>1</sup>Guru Gobind Singh Indraprastha University, India &nbsp;&nbsp;
+    <sup>1</sup>University of Tübingen, Germany &nbsp;&nbsp;
     <sup>2</sup>Artificial Intelligence Institute of South Carolina, USA &nbsp;&nbsp;
-    <sup>3</sup>Indian Institute of Technology Kanpur, India &nbsp;&nbsp;
-    <sup>4</sup>Indian AI Research Organization, India
+    <sup>3</sup>Guru Gobind Singh Indraprastha University, India &nbsp;&nbsp;
+    <sup>4</sup>Indian Institute of Technology Kanpur, India &nbsp;&nbsp;
+    <sup>5</sup>Thapar Institute of Engineering & Technology, India &nbsp;&nbsp;
+    <sup>6</sup>Indian AI Research Organization, India
   </p>
   <div class="btn-row">
     <a href="icml_camready_paper.pdf" class="btn btn-primary">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Paper (ICML)
+      Formalization Paper (ICML)
+    </a>
+    <a href="" class="btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Post-Training Paper
     </a>
     <a href="aaai_paper.pdf" class="btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
